@@ -9,6 +9,8 @@
 
 2026-11-23：**Phase 0 完成**。PROMPT.md 的預設假設全部確認，第一個 commit 已 push 到 GitHub `csc0803/flash-sale`。`backend/` 已用 Initializr 產生，`db/01-init.sql` 已寫好。下一步：Phase 1，在本機 MySQL 執行建表 script、設定 `application-local.yaml`，讓後端連上 MySQL 啟動成功。
 
+2026-11-23：Phase 1 大部分完成。本機 MySQL 從 8.0（已 EOL）換成 9.7.4 LTS，建好 `flashsaledb` 與 `flashsale` 帳號、執行 `db/01-init.sql`；後端改用 port 8081（8080 被排行榜專案佔用），用 local profile 啟動成功。剩下 Testcontainers 對齊本機 schema，等 Phase 2 entity 在本機驗證後再做。
+
 ## 專案結構（規劃）
 ```
 flash-sale/
@@ -51,11 +53,11 @@ flash-sale/
 
 ## Phase 1：後端骨架與基礎設施
 - [x] 用 Spring Initializr 產生 `backend/`（Spring Boot 4.2.0；Web、Data JPA、Validation、MySQL Driver、Data Redis、RabbitMQ、Security、OAuth2 Resource Server、Lombok、Testcontainers）
-- [ ] 本機 MySQL（MySQL Workbench）：建立 `flashsaledb`（utf8mb4）與專用帳號 `flashsale@localhost`，只授予 `flashsaledb.*` 權限（帳號密碼不寫進 repo）
-- [ ] `db/01-init.sql`：`users` / `product` / `orders` table 與約束，在 Workbench 用 `flashsale` 帳號執行（script 已寫好並檢查過，待確認已執行、MySQL 版本 ≥ 8.0.16）
-- [ ] profile 設定：`application.yaml` + `application-local.yaml`（連本機 MySQL 3306，含密碼，不進 git）
-- [ ] 確認後端可連上本機 MySQL 並啟動成功
-- [ ] 建立 Testcontainers 共用測試設定（MySQL / Redis / RabbitMQ；Initializr 沒有帶 Redis 的 Testcontainers 模組，用 `GenericContainer` 或另外加）
+- [x] 本機 MySQL（MySQL Workbench）：建立 `flashsaledb`（utf8mb4）與專用帳號 `flashsale@localhost`，只授予 `flashsaledb.*` 權限（帳號密碼不寫進 repo）。MySQL 8.0 已 EOL，改為重新安裝 9.7.4 LTS
+- [x] `db/01-init.sql`：`users` / `product` / `orders` table 與約束，在 Workbench 用 `flashsale` 帳號執行（已在 9.7.4 執行，約束確認無誤）
+- [x] profile 設定：`application.yaml`（`server.port: 8081`、`ddl-auto: validate`）+ `application-local.yaml`（密碼，不進 git）+ `application-local.yaml.example`（範本）
+- [x] 確認後端可連上本機 MySQL 並啟動成功（`-Dspring-boot.run.profiles=local`）
+- [ ] 建立 Testcontainers 共用測試設定（MySQL / Redis / RabbitMQ；Initializr 沒有帶 Redis 的 Testcontainers 模組，用 `GenericContainer` 或另外加）。目前 `./mvnw test` 可通過。**延後到 entity 在本機確認後**：MySQL 容器改用 `mysql:9.7`，資料庫名稱 / 帳號 / 時區（+08:00）/ `lower_case_table_names=1` 對齊本機，並掛載 `db/01-init.sql` 自動建表；Redis、RabbitMQ 也固定版本
 
 ## Phase 2：登入與權限（Spring Security + JWT）
 - [ ] `User` entity、`UserRepository`
@@ -150,4 +152,4 @@ flash-sale/
 - [ ] 多個 backend instance 一起跑，驗證各策略在多實例下是否仍正確
 
 ## 下一步
-Phase 1：在 Workbench 執行 `db/01-init.sql`（先確認 MySQL ≥ 8.0.16），建立 `application-local.yaml` 連本機 MySQL，確認後端啟動成功，再建立 Testcontainers 共用測試設定。
+Phase 2：建立 `User` entity，用 local profile 啟動確認 `ddl-auto: validate` 通過；接著把 Testcontainers 的 MySQL 對齊本機（見 Phase 1 最後一項），再寫註冊 / 登入與 JWT。

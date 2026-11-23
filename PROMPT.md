@@ -51,6 +51,6 @@
 - Node: v24.13.1
 - npm: 11.8.0
 - Docker: 29.9.2（Testcontainers、k6、Phase 11 容器化會用到）
-- MySQL：本機安裝，port 3306，用 MySQL Workbench 管理
+- MySQL：本機安裝 9.7.4 LTS（2026-11-23 從 8.0 重新安裝，8.0 已 EOL），port 3306，Windows 服務 `MySQL97`，用 MySQL Workbench 管理
 - Maven：使用 Maven Wrapper (mvnw)
 - GitHub CLI：2.94.0
